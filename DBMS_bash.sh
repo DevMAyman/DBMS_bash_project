@@ -151,5 +151,71 @@ fi
 #echo "$finger_print_exist_2"
 
 if [[ $finger_print_exist_1 = true &&  $database_dir_found = true  && $finger_print_exist_2 = true  ]]; then
+echo "Plese Enter the number of your choice"
+
+select choice in "Create Database" "list Databases" "Delete Database" "connect to database" "Exit" 
+do
+case $REPLY in
+1)
+read -p "Enter the database name :" dbname
+
+if [ -e "$dbname" ]
+then
+ echo "Database already exist"
+else
+cd ../database	
+mkdir "$dbname"
+fi 
+;;
+
+2)
+cd ../database
+# -p is to add / to directories to grep them
+ls -p | grep /
+;;
+
+3)
+read -p "Enter the database name :" dbname
+
+cd ../database
+
+if [ -e "$dbname" ]
+then
+ rm -r $dbname
+else
+echo "There is no database with this name"
+fi	
+;;
+
+4)
+read -p "Enter the database name :" dbname
+
+cd ../database
+
+if [ -e "$dbname" ]
+then
+ echo "Connection to ${dbname} Succeded"
+ echo "Enter the number of your operation"
+ select action in "Create table" "List tables" "Drop table" "Insert table" "Select from table" "Delete from table" "Update table" "Back"
+ do 
+echo not implemented yet
+done
+
+
+else
+echo "There is no database with this name"
+fi      
+
+;;
+
+5)
+break
+;;
+
+*)
+echo "Please Enter Valid Choice"
+;;
+esac
+done
 
 fi
