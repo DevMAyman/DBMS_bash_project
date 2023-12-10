@@ -1,6 +1,15 @@
 #! /bin/bash
 # welcome to my user and mention his/her user name
 #--------------------------------------------------------------------------------------------------------------------You must enter number only---------------------------------------------------------------
+function ValidateNumirecInput (){
+if [[ $1 = +([0-9]) ]]
+then
+return 0
+else
+echo "Please Enter numbers only"
+return 1
+fi
+}
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function validateDBobjectName (){
 if [[ $1 =~ ^[A-Za-z]+ ]]; then
@@ -39,14 +48,53 @@ fi
 done 
 #------------------------------------------------------------------------------------------------------------------
 if [[ $tablecreated = true ]]; then
-#echo "hoooooooo"
-read -p "Enter number of columns :" col_num
-read -p "Enter number of PK col :" PK_col_num
 
+var=1
+while [[ $var = 1 ]]
+do 
+read -p "Enter number of columns :" col_num
+ValidateNumirecInput $col_num
+var=$?
+if [[ $col_num == 0 && $var == 0 ]]; then
+var=1
+echo "Number of columns can't be 0"
+continue
+fi
+if [[ $var = 1 ]]; then
+continue
+fi
+done
+
+
+#------------------------------------------------if number of columns =1 do not ask him about number of pk column number and set it to 1 -----------------------------------------------------
+if [[ $col_num = 1 ]]; then
+echo $col_num
+PK_col_num=1
+fi
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+var=1
+while (( $var == 1 && $col_num != 1 ))
+do
+read -p "Enter number of PK col :" PK_col_num
+ValidateNumirecInput $PK_col_num
+var=$?
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+if [[ $PK_col_num > $col_num ]]; then
+var=1
+echo "Please Enter number betwen or equal to 1 and ${col_num}"
+continue
+fi
+if [[ $var = 1 ]]; then
+continue
+fi
+done
+
+
+ #--------------------------------------take data from user will start know-----------------------------------------------------------------------------------
 for (( i=0; i< $col_num ; i++ ))
 do
   #--------------------------------------------------column name---------------------------------------------------------
-  read -p "Enter the name of column $(($i+1))" col_name
+  read -p "Enter the name of column $(($i+1)) :" col_name
   validateDBobjectName "$col_name"
   var=$?
   if [[ $var = 1 ]]; then
