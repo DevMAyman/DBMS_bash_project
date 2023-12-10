@@ -1,5 +1,23 @@
 #! /bin/bash
 # welcome to my user and mention his/her user name
+
+#---------------------------------------------------------------------------------------------------------------------
+
+function createTable (){
+# will create table here 
+echo mo ayman
+}
+function validateDBobjectName (){
+
+if [[ $1 =~ ^[A-Za-z]+ ]]; then
+return 0
+else
+echo not valid name, do not start with number or special charachter.
+return 1 
+fi
+}
+
+#---------------------------------------------------------------------------------------------------------------------
 echo "Welcome! Your beautiful program has been started!, $USER"
 #المشكلة اني عايز اعمل انشاء للفولدر اللى هيحتوي كل الداتا بيز بعد كده وخايف يكون هو عامل فولدر بنفس الاسم او انا بالفعل عملتله الفولدر ده وراح حرك #الفولدر من مكانه بتاع الداتا بيز فجيه يفتح #البرنامج تاني فالبرنامج بيتاكد ان ده مش اول مره يرن على الماشين ديه ويدور على فولدر الداتا بيز يةقم ميلقهوش #فبرنامجي يفهم ان كده هو اول مره يشتغل رغم انه اشتغل قبل كده بس المستخدم #حرك الفولدر من مكانه 
 finger_print_exist_1=false
@@ -40,15 +58,15 @@ done
 fi
 #---------------------------------------------------------------------------------------------------------------
 #user remove finger_print_1 and data base exist
-if [[ $finger_print_exist_1 = false &&  $database_dir_found = true  && $database_dir_found = true ]]; then
+if [[ $finger_print_exist_1 = false &&  $database_dir_found = true  && $finger_print_exist_2 = true ]]; then
 echo "Hi $USER, I think you remove my_finger_print_on_your_device_1 file! Please do not remove it as it help me!"
 touch ./my_finger_print_on_your_device_1
 finger_print_exist_1=true
-fi
+
 
 #----------------------------------------------------------------------------------------------------------------
 
-if [[ $finger_print_exist_1 = true && $database_dir_found = false && $finger_print_exist_2 = false ]]; then
+elif [[ $finger_print_exist_1 = true && $database_dir_found = false && $finger_print_exist_2 = false ]]; then
 cd ..
 echo "I think you remove my directory database or you change the directory of database directory and make directory called database in $PWD"
 cd ./DBMS_bash_project
@@ -69,19 +87,22 @@ cd ./DBMS_bash_project
 database_dir_found=false
 break
 ;;
+*)
+echo "Please Enter Valid Choice"
+;;
 esac
 done
-fi
+
 
 #----------------------------------------------------------------------------------------------------------------
 
-if [[ $finger_print_exist_1 = true && $database_dir_found = true && $finger_print_exist_2 = true ]]; then
+elif [[ $finger_print_exist_1 = true && $database_dir_found = true && $finger_print_exist_2 = true ]]; then
 echo "Welcom again $USER !"
-fi
+
 
 #----------------------------------------------------------------------------------------------------------------
 
-if [[ $finger_print_exist_1 = false && $database_dir_found = true && $finger_print_exist_2 = false ]]; then
+elif [[ $finger_print_exist_1 = false && $database_dir_found = true && $finger_print_exist_2 = false ]]; then
 echo "My be it is the first time using my program or mr may be you delete my file my_finger_print_on_your_device_2 my_finger_print_on_your_device_1"
 cd ..
 echo "I need to create directory caleed database in but i found one$PWD"
@@ -103,13 +124,16 @@ touch ./my_finger_print_on_your_device_1
 finger_print_exist_2=false
 break
 ;;
+*)
+echo "Please Enter Valid Choice"
+;;
 esac
 done
-fi
+
 
 #----------------------------------------------------------------------------------------------------------------
 
-if [[ $finger_print_exist_1 = false && $database_dir_found = false && $finger_print_exist_2 = false ]]; then
+elif [[ $finger_print_exist_1 = false && $database_dir_found = false && $finger_print_exist_2 = false ]]; then
 echo "Welcome, $USER I know that is your first time use my program"
 mkdir ../database
 touch ./my_finger_print_on_your_device_1
@@ -117,11 +141,11 @@ touch ../database/my_finger_print_on_your_device_2
 finger_print_exist_1=true
 database_dir_found=true
 finger_print_exist_2=true
-fi
+
 
 #---------------------------------------------------------------------------------------------------------------
 
-if [[ $finger_print_exist_1 = true &&  $database_dir_found = true  && $finger_print_exist_2 = false  ]]; then
+elif [[ $finger_print_exist_1 = true &&  $database_dir_found = true  && $finger_print_exist_2 = false  ]]; then
 
 cd ..
 echo "I think you remove my file my_finger_print_on_your_device_2 or you change the directory of database directory and make directory called database in $PWD"
@@ -141,6 +165,9 @@ cd ./DBMS_bash_project
 finger_print_exist_2=false
 break
 ;;
+*)
+echo "Please Enter Valid Choice"
+;;
 esac
 done
 fi 
@@ -157,16 +184,30 @@ select choice in "Create Database" "list Databases" "Delete Database" "connect t
 do
 case $REPLY in
 1)
+var=1
+while [[ $var = 1 ]]
+do
 read -p "Enter the database name :" dbname
-
+# validate db name
+validateDBobjectName $dbname
+var=$?
+if [[ $var = 1 ]]; then
+continue
+fi 
+cd ../database	
 if [ -e "$dbname" ]
 then
  echo "Database already exist"
+ cd ../DBMS_bash_project	
 else
 cd ../database	
 mkdir "$dbname"
-fi 
+echo "Database created successfully"
+ cd ../DBMS_bash_project	
+fi
+done 
 ;;
+
 
 2)
 cd ../database
@@ -178,12 +219,15 @@ ls -p | grep /
 read -p "Enter the database name :" dbname
 
 cd ../database
-
 if [ -e "$dbname" ]
+ cd ../DBMS_bash_project	
 then
- rm -r $dbname
+cd ../database
+rm -r "$dbname"
 else
 echo "There is no database with this name"
+ls -F ../database | grep -i "/$" 
+ cd ../DBMS_bash_project	
 fi	
 ;;
 
@@ -198,12 +242,16 @@ then
  echo "Enter the number of your operation"
  select action in "Create table" "List tables" "Drop table" "Insert table" "Select from table" "Delete from table" "Update table" "Back"
  do 
-echo not implemented yet
+case $REPLY in
+1) createTable
+esac
 done
 
 
 else
-echo "There is no database with this name"
+echo "$myvar"
+echo "There is no database with this name, I think you mean one of these files"
+ls -F ../database | grep -i "/$" 
 fi      
 
 ;;
@@ -216,6 +264,5 @@ break
 echo "Please Enter Valid Choice"
 ;;
 esac
-done
-
+done 
 fi
