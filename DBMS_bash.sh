@@ -1,14 +1,8 @@
 #! /bin/bash
 # welcome to my user and mention his/her user name
-
-#---------------------------------------------------------------------------------------------------------------------
-
-function createTable (){
-# will create table here 
-echo mo ayman
-}
+#--------------------------------------------------------------------------------------------------------------------You must enter number only---------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function validateDBobjectName (){
-
 if [[ $1 =~ ^[A-Za-z]+ ]]; then
 return 0
 else
@@ -16,6 +10,107 @@ echo not valid name, do not start with number or special charachter.
 return 1 
 fi
 }
+
+function createTable (){
+tablecreated=false
+# will create table here 
+var=1
+while [[ $var = 1 ]]
+do
+read -p "Enter table name :" tbname
+validateDBobjectName $tbname
+var=$?
+if [[ $var = 1 ]]; then
+continue
+fi 
+if [[ -f "./"$1"/"$tbname"" ]]
+then
+echo "Table already exist"
+var=1
+continue	
+else
+touch ./"$1"/"$tbname"
+touch ./"$1"/"$tbname.metadata"	
+echo "Table created successfully"
+tablecreated=true
+var=0
+
+fi
+done 
+#------------------------------------------------------------------------------------------------------------------
+if [[ $tablecreated = true ]]; then
+#echo "hoooooooo"
+read -p "Enter number of columns :" col_num
+read -p "Enter number of PK col :" PK_col_num
+
+for (( i=0; i< $col_num ; i++ ))
+do
+  #--------------------------------------------------column name---------------------------------------------------------
+  read -p "Enter the name of column $(($i+1))" col_name
+  validateDBobjectName "$col_name"
+  var=$?
+  if [[ $var = 1 ]]; then
+  ((i--))
+  continue
+  fi
+  
+  #--------------------------------------------------DataType---------------------------------------------------------
+  
+  echo "what is your data type"
+  select choice in "string" "int" 
+  do
+  case $REPLY in
+  1) 
+  col_type=string
+  break
+  ;;
+  2)
+  col_type=int
+  break
+  ;;
+  *)
+  echo "Enter valid choice 1 or 2"
+  ;;
+  esac
+  done
+  
+  #---------------------------------------------------null or not null -------------------------------------------------
+  
+
+  if (( (($i+1)) != $PK_col_num )); then
+  echo "Do your column allow null"
+  select choice in "null" "not null"
+  do
+  case $REPLY in
+  1) 
+  col_null=null
+  break
+  ;;
+  2)
+  col_null=not_null
+  break
+  ;;
+  *)
+  echo "Enter valid choice 1 or 2"
+  ;;
+  esac
+  done
+  elif (( (($i+1)) == $PK_col_num )); then
+  echo "This is a primary key column so it will be not null by default"
+  col_null=not_null
+  fi
+    #---------------------------------------------------push my variable into table and metadata-------------------------------------------------
+    #echo $PWD
+    echo "${col_name}::${col_type}::${col_null}" >> ../database/"$1"/"${tbname}.metadata"
+    if (( $i == (($col_num-1)) )); then
+    echo -n "${col_name}" >> ../database/"$1"/"$tbname"
+    else
+    echo -n "${col_name}::" >> ../database/"$1"/"$tbname"
+    fi
+done
+fi
+}
+
 
 #---------------------------------------------------------------------------------------------------------------------
 echo "Welcome! Your beautiful program has been started!, $USER"
@@ -94,13 +189,13 @@ esac
 done
 
 
-#----------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 elif [[ $finger_print_exist_1 = true && $database_dir_found = true && $finger_print_exist_2 = true ]]; then
 echo "Welcom again $USER !"
 
 
-#----------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------------
 
 elif [[ $finger_print_exist_1 = false && $database_dir_found = true && $finger_print_exist_2 = false ]]; then
 echo "My be it is the first time using my program or mr may be you delete my file my_finger_print_on_your_device_2 my_finger_print_on_your_device_1"
@@ -243,13 +338,13 @@ then
  select action in "Create table" "List tables" "Drop table" "Insert table" "Select from table" "Delete from table" "Update table" "Back"
  do 
 case $REPLY in
-1) createTable
+1)
+createTable  "$dbname"
 esac
 done
 
 
 else
-echo "$myvar"
 echo "There is no database with this name, I think you mean one of these files"
 ls -F ../database | grep -i "/$" 
 fi      
@@ -266,3 +361,4 @@ echo "Please Enter Valid Choice"
 esac
 done 
 fi
+
