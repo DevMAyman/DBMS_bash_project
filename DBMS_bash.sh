@@ -10,6 +10,22 @@ echo "Please Enter numbers only"
 return 1
 fi
 }
+function ValidateDTNumirecInput (){
+if [[ $1 = *([0-9]) ]]
+then
+echo "Data type validate successfully"
+return 0
+else
+echo "Please Enter numbers only"
+return 1
+fi
+}
+#-------------------------------------------------------------------------------------------------------check uniqness--------------------------------------------------------------------------------------------------------------
+##check_uniqueness $1 $tab_name $col_value $var
+function check_uniqueness (){
+PK_field=$(awk  -F '::' -v col_num=$4 -v col_val=$3 '{if ($col_value == $"$col_num"){print 1; exit}}' ./"$1"/"$2")
+return $PK_fields
+}
 #-------------------------------------------------------------------------------------------------------NULL or Not NULL-------------------------------------------------------------------------------------------------------------
 # parameters : $1 $tab_name $c $col_value
 function chechNull (){
@@ -34,10 +50,10 @@ function VlidateDatatype (){
 dataType=$(head -$line_num ./"$1"/"$2.metadata" | tail -1 | awk -F '::' '{print $2}') #$2 is the second field (int,string)
  
 if [[ $dataType = int   ]]; then 
-ValidateNumirecInput $4
+ValidateDTNumirecInput $4  #Must be modified ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 var=$?
 return $var
-elif [[ $dataType = string && $4 = *([0-9])  ]]; then
+elif [[ $dataType = string && $4 = +([0-9])  ]]; then
 echo "Please enter String"
 return 1
 else
@@ -77,10 +93,6 @@ ls -p  | grep -vE '.metadata$|/'
 cd ../
 fi
 }
-
-
-
-
 #-------------------------------------------------------------------------------------------------Create table function-------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------Create table function-------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------Create table function-------------------------------------------------------------------------------------------------
@@ -112,11 +124,8 @@ var=0
 
 fi
 done
- 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 if [[ $tablecreated = true ]]; then
-
 var=1
 while [[ $var = 1 ]]
 do 
@@ -132,8 +141,6 @@ if [[ $var = 1 ]]; then
 continue
 fi
 done
-
-
 #------------------------------------------------if number of columns =1 do not ask him about number of pk column number and set it to 1 -----------------------------------------------------------------------------
 if [[ $col_num = 1 ]]; then
 echo $col_num
@@ -149,7 +156,7 @@ var=$?
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 if [[ $PK_col_num > $col_num ]]; then
 var=1
-echo "Please Enter number betwen or equal to 1 and ${col_num}"
+echo "Please Enter number between or equal to 1 and ${col_num}"
 continue
 fi
 if [[ $var = 1 ]]; then
@@ -186,6 +193,7 @@ do
   esac
   done
 #-----------------------------------------------------------------------------------------------------------------null or not null-------------------------------------------------------------------------------------------------
+    is_primary_key=no
   if (( (($i+1)) != $PK_col_num )); then
   echo "Do your column allow null"
   select choice in "null" "not null"
@@ -207,10 +215,15 @@ do
   elif (( (($i+1)) == $PK_col_num )); then
   echo "This is a primary key column so it will be not null by default"
   col_null=not_null
+  is_primary_key=yes
   fi
 #---------------------------------------------------push my variable into table and metadata-------------------------------------------------
     #echo $PWD
+    if [[ $is_primary_key = no ]]; then
     echo "${col_name}::${col_type}::${col_null}" >> ../database/"$1"/"${tbname}.metadata"
+    elif [[ $is_primary_key = yes ]]; then
+    echo "${col_name}::${col_type}::${col_null}::"PK"" >> ../database/"$1"/"${tbname}.metadata"
+    fi
     if (( $i == (($col_num-1)) )); then
     echo  "${col_name}" >> ../database/"$1"/"$tbname"
     else
@@ -219,7 +232,6 @@ do
 done
 fi
 }
-
 #-------------------------------------------------------------------------------------------------Insert in table function-------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------Insert in table function-------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------Insert in table function-------------------------------------------------------------------------------------------------
@@ -261,6 +273,20 @@ if [[ $is_null = 1 ]]; then
 ((c=$c-1))
 continue
 fi
+#----------------------------------------------------------------------------------------------check uniquenes ---------------------------------------------------------------------------------------------------
+let var=$c+1
+pk_exist=$(head -$var ./"$1"/"${tab_name}.metadata" | tail -1 | awk -F '::' '{print $4}') #number of column
+#echo $4
+if [[ $pk_exist = PK ]]; then
+check_uniqueness $1 $tab_name $col_value $var
+unique_val=$?
+if [[ $unique_val = 1 ]]; then
+echo "You must enter unique value"
+((c=$c-1))
+continue
+fi
+fi
+
 #--------------------------------------------------------------------------------------------Append in table after 3 validation-----------------------------------------------------------------------------------
 if [[ $is_null = 2 ]]; then   #add null if user enter nothing and your column allow null
 col_value=null
@@ -397,7 +423,7 @@ echo "Please Enter Valid Choice"
 esac
 done
 #----------------------------------------------------------------------------------------------------------------
-s
+
 elif [[ $finger_print_exist_1 = false && $database_dir_found = false && $finger_print_exist_2 = false ]]; then
 echo "Welcome, $USER I know that is your first time use my program"
 mkdir ./database

@@ -1,0 +1,4 @@
+name::string::not_null
+age::int::not_null
+id::string::null
+courses::int::not_null
