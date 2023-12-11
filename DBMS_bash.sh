@@ -19,7 +19,9 @@ echo not valid name, do not start with number or special charachter.
 return 1 
 fi
 }
-
+#-------------------------------------------------------------------------------------------------Create table function-------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------Create table function-------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------Create table function-------------------------------------------------------------------------------------------------
 function createTable (){
 tablecreated=false
 # will create table here 
@@ -151,7 +153,7 @@ do
     #echo $PWD
     echo "${col_name}::${col_type}::${col_null}" >> ../database/"$1"/"${tbname}.metadata"
     if (( $i == (($col_num-1)) )); then
-    echo -n "${col_name}" >> ../database/"$1"/"$tbname"
+    echo  "${col_name}" >> ../database/"$1"/"$tbname"
     else
     echo -n "${col_name}::" >> ../database/"$1"/"$tbname"
     fi
@@ -159,7 +161,64 @@ done
 fi
 }
 
+#-------------------------------------------------------------------------------------------------Insert in table function-------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------Insert in table function-------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------Insert in table function-------------------------------------------------------------------------------------------------
 
+
+
+insertInTable (){
+in_var=1
+while [[ $in_var = 1 ]]
+do
+read -p "enter table name : " tab_name
+if [[ -f "./"$1"/"$tab_name"" ]]; then
+in_var=0
+else
+echo "This name does not exist"
+continue
+fi
+done
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------s
+num_col=$(awk -F '::' '{print NF}' ./"$1"/"$tab_name")
+#echo $num_col
+i_want_continue=yes
+while [[ $i_want_continue = yes ]]
+do
+for (( c=0; c<$num_col; c++ ))
+do
+in_col_name=$(head -1  ./"$1"/"$tab_name" | awk -v var=$(($c+1)) -F '::' '{print $var}')
+read -p "enter the value for column ${in_col_name}: " col_value
+if (( $c == 0 )); then
+echo -n "${col_value}::" >> ./"$1"/"$tab_name"
+elif (( $c == (($num_col-1)) )); then
+echo  "${col_value}" >> ./"$1"/"$tab_name"
+else
+echo -n "${col_value}::" >> ./"$1"/"$tab_name"
+fi
+done
+var_invalid=yes
+while [[ $var_invalid = yes ]]
+do
+echo "Do you want insert another row"
+echo "1)Yes"
+echo "2)No"
+read  var
+if [[ $var = Yes || (($var = 1)) ]]; then
+i_want_continue=yes
+var_invalid=no
+continue
+elif [[ $var = No || (($var = 2)) ]]; then
+i_want_continue=No
+var_invalid=no
+break
+else
+echo "Enter valid input"
+var_invalid=yes
+fi
+done
+done
+}
 #---------------------------------------------------------------------------------------------------------------------
 echo "Welcome! Your beautiful program has been started!, $USER"
 #المشكلة اني عايز اعمل انشاء للفولدر اللى هيحتوي كل الداتا بيز بعد كده وخايف يكون هو عامل فولدر بنفس الاسم او انا بالفعل عملتله الفولدر ده وراح حرك #الفولدر من مكانه بتاع الداتا بيز فجيه يفتح #البرنامج تاني فالبرنامج بيتاكد ان ده مش اول مره يرن على الماشين ديه ويدور على فولدر الداتا بيز يةقم ميلقهوش #فبرنامجي يفهم ان كده هو اول مره يشتغل رغم انه اشتغل قبل كده بس المستخدم #حرك الفولدر من مكانه 
@@ -275,7 +334,7 @@ done
 
 
 #----------------------------------------------------------------------------------------------------------------
-
+s
 elif [[ $finger_print_exist_1 = false && $database_dir_found = false && $finger_print_exist_2 = false ]]; then
 echo "Welcome, $USER I know that is your first time use my program"
 mkdir ../database
@@ -286,7 +345,7 @@ database_dir_found=true
 finger_print_exist_2=true
 
 
-#---------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 elif [[ $finger_print_exist_1 = true &&  $database_dir_found = true  && $finger_print_exist_2 = false  ]]; then
 
@@ -376,7 +435,6 @@ fi
 
 4)
 read -p "Enter the database name :" dbname
-
 cd ../database
 
 if [ -e "$dbname" ]
@@ -388,6 +446,10 @@ then
 case $REPLY in
 1)
 createTable  "$dbname"
+;;
+4)
+insertInTable  "$dbname"
+;;
 esac
 done
 
@@ -409,4 +471,3 @@ echo "Please Enter Valid Choice"
 esac
 done 
 fi
-
