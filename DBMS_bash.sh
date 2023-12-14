@@ -20,6 +20,19 @@ echo "Please Enter numbers only"
 return 1
 fi
 }
+orderRowsByPK (){
+PK_fields=$(awk  -F ':' '{ for (i = 1; i <= NF; i++) {if( $i == "PK" ){ print NR; exit;}}}' ./"$1"/."$2.metadata") 
+PK_type=$(awk  -F ':' '{ for (i = 1; i <= NF; i++) {if( $i == "PK" ){ print $2; exit;}}}' ./"$1"/."$2.metadata") 
+all_rows=$(wc -l < ./"$1"/"$2")
+((all_rows=${all_rows}-1))
+head -1 ./"$1"/"$2" >> ./temp
+if [[ $PK_type == "int" ]]; then
+tail -"$all_rows" ./"$1"/"$2" | sort -t':' -k"$PK_fields","$PK_fields"n  >> ./temp
+else
+tail -"$all_rows" ./"$1"/"$2" | sort -t':' -k"$PK_fields","$PK_fields"  >> ./temp
+fi
+mv ./temp ./"$1"/"$tbname"
+}
 #-------------------------------------------------------------------------------------------------------check uniqness(insert)---------------------------------------------------------------------------------
 ##check_uniqueness $1 $tab_name $col_value $var $4
 function check_uniqueness (){
@@ -441,6 +454,7 @@ no_row_affect=$(wc -l < ./"$1"/"$tbname")
 ((no_row_affect=$no_row_affect-1))
 echo "$no_row_affect row(s) affected"
 fi
+orderRowsByPK "$1" "$tbname"  
 }
 
 
@@ -675,6 +689,7 @@ var_invalid=yes
 fi
 done
 done
+orderRowsByPK "$1" "$tab_name"
 }
 #-----------------------------------------------------------------------------------------Main Start The program--------------------------------------------------------------------------------------------------------------------
 echo "Welcome! Your beautiful program has been started!, $USER"
@@ -811,11 +826,7 @@ esac
 done
 fi 
 
-#----------------------------------------------------------------------------------------------------------------
-#echo "$finger_print_exist_1"
-#echo "$database_dir_found"
-#echo "$finger_print_exist_2"
-
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 if [[ $finger_print_exist_1 = true &&  $database_dir_found = true  && $finger_print_exist_2 = true  ]]; then
 echo "Please Enter the number of your choice"
 select choice in "Create Database" "list Databases" "Delete Database" "connect to database" "Exit" 
@@ -900,7 +911,7 @@ drop_table "$dbname"
 4)
 #----------------------------------------------------------------------------------insert table call----------------------------------------------------------------------------------------------------------------------------
 insertInTable  "$dbname"
-#orderRowsByPK
+#orderRowsByPK "$dbname"
 
 ;;
 5)
@@ -913,7 +924,6 @@ deleteFromTable  "$dbname"
 ;;
 7)
 updateTable "$dbname"
-#orderRowsByPK
 ;;
 esac
 done
