@@ -21,15 +21,18 @@ return 1
 fi
 }
 orderRowsByPK (){
+PK_fields=0
 PK_fields=$(awk  -F ':' '{ for (i = 1; i <= NF; i++) {if( $i == "PK" ){ print NR; exit;}}}' ./"$1"/."$2.metadata") 
 PK_type=$(awk  -F ':' '{ for (i = 1; i <= NF; i++) {if( $i == "PK" ){ print $2; exit;}}}' ./"$1"/."$2.metadata") 
 all_rows=$(wc -l < ./"$1"/"$2")
+if [[ $PK_fields != "" ]]; then
 ((all_rows=${all_rows}-1))
 head -1 ./"$1"/"$2" >> ./temp
 if [[ $PK_type == "int" ]]; then
 tail -"$all_rows" ./"$1"/"$2" | sort -t':' -k"$PK_fields","$PK_fields"n  >> ./temp
 else
 tail -"$all_rows" ./"$1"/"$2" | sort -t':' -k"$PK_fields","$PK_fields"  >> ./temp
+fi
 fi
 mv ./temp ./"$1"/"$tbname"
 }
