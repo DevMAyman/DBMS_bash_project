@@ -1,3 +1,0 @@
-name::string::not_null
-id::int::not_null::PK
-age::int::null
