@@ -2,8 +2,7 @@
 # welcome to my user and mention his/her user name
 #--------------------------------------------------------------------------------------------------------------------You must enter number only---------------------------------------------------------------------
 function ValidateNumirecInput (){
-if [[ $1 = +([0-9]) ]]
-then
+if [[ $1 = +([0-9]) ]];then
 return 0
 else
 echo "Please Enter numbers only"
@@ -11,7 +10,7 @@ return 1
 fi
 }
 function ValidateDTNumirecInput (){
-if [[ $1 = *([0-9]) ]]
+if [[ $1 = *([0-9]) || $1 == "null"  ]]
 then
 echo "Data type validate successfully"
 return 0
@@ -33,8 +32,9 @@ tail -"$all_rows" ./"$1"/"$2" | sort -t':' -k"$PK_fields","$PK_fields"n  >> ./te
 else
 tail -"$all_rows" ./"$1"/"$2" | sort -t':' -k"$PK_fields","$PK_fields"  >> ./temp
 fi
-fi
 mv ./temp ./"$1"/"$tbname"
+fi
+
 }
 #-------------------------------------------------------------------------------------------------------check uniqness(insert)---------------------------------------------------------------------------------
 ##check_uniqueness $1 $tab_name $col_value $var $4
@@ -56,7 +56,7 @@ is_null=$(head -$line_number_in_metadatafile ./"$1"/."$2.metadata" | tail -1 | a
 if [[ $is_null = not_null && ( -z "$4" || "$4" = null )   ]]; then
 echo "Not ok, your column is not_null and you insert no thing"
 return 1
-elif [[ $is_null = null && -z "$4" ]]; then
+elif [[ $is_null = null && -z "$4"  ]]; then
 echo "ok, your column is null and you insert no thing"
 return 2
 else
@@ -366,11 +366,11 @@ chechNull $1 $tbname $col_num $new_value
 var1=$?
 if [[ $var1 = 1 ]]; then
 continue
-else
-var1=0
-fi
-#-------------check on primary key--------------------------
 
+fi
+if [[ $var1 = 2 ]]; then   #add null if user enter nothing and your column allow null
+new_value=null
+fi
 done
 #
 #------------------------------------------------------------------------------------------Where Condtion------------------------------
@@ -417,6 +417,9 @@ var1=1
 while [[ $var = where_applied && $var1 = 1 ]]
 do
 read -p "Enter your value" value
+if [[ $value = "" ]]; then   #add null if user enter nothing and your column allow null
+value=null
+fi
 no_row_affect=0
 no_row_affect=$(awk -F  ':' -v aw_where_col_num="$where_col_exist" -v val="$value" -v aw_new_value="$new_value" -v aw_col_exist="$col_exist" -v aw_no_row_affect=$no_row_affect '{ if ($aw_where_col_num == val && NR != 1) {aw_no_row_affect++; }} END {print aw_no_row_affect;} ' ./"$1"/"$tbname")
 
