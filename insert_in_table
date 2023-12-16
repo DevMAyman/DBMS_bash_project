@@ -1,0 +1,95 @@
+#!/usr/bin/bash
+
+function insertInTable (){
+in_var=1
+while [[ $in_var = 1 ]]
+do
+read -p "enter table name : " tab_name
+if [[ -f "./"$1"/"$tab_name"" ]]; then
+in_var=0
+else
+echo "This name does not exist"
+continue
+fi
+done
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+let num_col=$(awk -F ':' '{print NF}' ./"$1"/"$tab_name") #number of column
+#----------------------------------------------------------------------------------------------Handle roll back------------------------------------------------------------------------------------------------
+echo  "${tab_name}:${num_col}:$1" >> ../.logs
+#----------------------------------------------------------------------------------------------Handle roll back------------------------------------------------------------------------------------------------
+#echo $num_col
+
+i_want_continue=yes
+while [[ $i_want_continue = yes ]]
+do
+for (( c=0; c<$num_col; c++ ))
+do
+in_col_name=$(head -1  ./"$1"/"$tab_name" | awk -v var=$(($c+1)) -F ':' '{print $var}')
+read -p "Enter the value for column ${in_col_name} : " col_value
+#-------------------------------------------------------------------------------------------call validate datatype function---------------------------------------------------------------------------------------
+# $1 is the dbname,$c is the field number for tabledata and line number for metadata,
+VlidateDatatype $1 $tab_name $c $col_value
+dataType=$?
+if [[ $dataType = 1 ]]; then
+((c=$c-1))
+continue
+fi
+#------------------------------------------------------------------------------------------- call check null function----------------------------------------------------------------------------------------------
+# $1 is the dbname,$c is the field number for tabledata and line number for metadata,
+chechNull $1 $tab_name $c $col_value
+is_null=$?
+if [[ $is_null = 1 ]]; then
+((c=$c-1))
+continue
+fi
+#----------------------------------------------------------------------------------------------check uniquenes ---------------------------------------------------------------------------------------------------
+let var=$c+1
+pk_exist=$(head -$var ./"$1"/".${tab_name}.metadata" | tail -1 | awk -F ':' '{print $4}') #number of column
+#echo $4
+if [[ $pk_exist = PK ]]; then
+check_uniqueness $1 $tab_name $col_value $var
+unique_val=$?
+if [[ $unique_val = 1 ]]; then
+echo "You must enter unique value"
+((c=$c-1))
+continue
+fi
+fi
+
+#--------------------------------------------------------------------------------------------Append in table after 3 validation-----------------------------------------------------------------------------------
+if [[ $is_null = 2 ]]; then   #add null if user enter nothing and your column allow null
+col_value=null
+fi
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+if (( $c == 0 )); then
+echo -n "${col_value}:" >> ./"$1"/"$tab_name"
+elif (( $c == (($num_col-1)) )); then
+echo  "${col_value}" >> ./"$1"/"$tab_name"
+else
+echo -n "${col_value}:" >> ./"$1"/"$tab_name"
+fi
+#--------------------------------------------------------------------------------------------insert another row or exit-----------------------------------------------------------------------------------
+done
+var_invalid=yes
+while [[ $var_invalid = yes ]]
+do
+echo "Do you want insert another row"
+echo "1)Yes"
+echo "2)No"
+read  var
+if [[ $var = Yes || (($var = 1)) ]]; then
+i_want_continue=yes
+var_invalid=no
+continue
+elif [[ $var = No || (($var = 2)) ]]; then
+i_want_continue=No
+var_invalid=no
+break
+else
+echo "Enter valid input"
+var_invalid=yes
+fi
+done
+done
+orderRowsByPK "$1" "$tab_name"
+}

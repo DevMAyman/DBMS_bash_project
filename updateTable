@@ -1,0 +1,147 @@
+#!/usr/bin/bash
+
+function updateTable () {
+#------------------------------------------------------------------------------------------------check table exist----------------------------------------------------
+var=1
+while [[ $var = 1 ]]
+do
+read -p "Enter table name to update : " tbname
+if [[ -f "./"$1"/"$tbname"" ]]; then
+var=0
+else
+echo "This name does not exist"
+continue
+fi
+done
+#-----------------------------------------------------------------------------------------------------check column exist---------------------------------------------------
+var=1
+while [[ $var = 1 ]]
+do 
+read -p "Enter column you want to update in : " col_name
+col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_name '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found ### col_exist is the column number i want to update
+if [[ $col_exist == "" ]]; then 
+echo "Column name dosen't exist"
+continue
+else
+var=0
+fi
+done
+#---------------------------------------------------------------------------------------------------call Validate data type function-------------------------------------------
+var1=1
+while [[ $var1 = 1 ]]
+do
+((col_num=$col_exist-1))
+read -p "Enter your new value : " new_value  
+VlidateDatatype $1 $tbname $col_num $new_value
+var1=$?
+if [[ $var1 = 1 ]]; then
+continue
+else
+var1=0
+fi
+#-----------------------------------------------------------------------------------------------------call null check function----------------------------------------------------
+chechNull $1 $tbname $col_num $new_value
+var1=$?
+if [[ $var1 = 1 ]]; then
+continue
+
+fi
+if [[ $var1 = 2 ]]; then   #add null if user enter nothing and your column allow null
+new_value=null
+fi
+done
+#
+#------------------------------------------------------------------------------------------Where Condtion------------------------------
+pk_exist=$(head -$col_exist ./"$1"/".${tbname}.metadata" | tail -1 | awk -F ':' '{print $4}') #head on the column number in metadata and check if the $4 is PK or no to check on primary key
+#echo $4
+if [[ $pk_exist = PK ]]; then
+var=where_applied
+else
+var=1
+while [[ $var = 1 ]]
+do
+echo "Do you want where condition?"
+echo "1) Yes" "2) No"
+#echo "enter 1 or 2"
+read is_condition
+if [[ $is_condition == 1 ]]; then
+var=where_applied
+elif [[ $is_condition == 2 ]]; then
+var=no_where_applied
+else
+var=1
+continue
+fi
+done
+fi
+#################################################Where#########################################
+
+while [[ $var = where_applied ]]
+do
+read -p "Enter column that holds your condtion : " col_condtion
+where_col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_condtion '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
+if [[ $where_col_exist == "" ]]; then
+echo "Col does not exist!" 
+var=where_applied
+continue
+else
+echo "Col exists!"
+break
+fi
+done
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+var1=1
+while [[ $var = where_applied && $var1 = 1 ]]
+do
+read -p "Enter your value" value
+if [[ $value = "" ]]; then   #add null if user enter nothing and your column allow null
+value=null
+fi
+no_row_affect=0
+no_row_affect=$(awk -F  ':' -v aw_where_col_num="$where_col_exist" -v val="$value" -v aw_new_value="$new_value" -v aw_col_exist="$col_exist" -v aw_no_row_affect=$no_row_affect '{ if ($aw_where_col_num == val && NR != 1) {aw_no_row_affect++; }} END {print aw_no_row_affect;} ' ./"$1"/"$tbname")
+
+#-----------------check column condtion exist--------------------------------------------------
+pk_exist=$(head -$col_exist ./"$1"/".${tbname}.metadata" | tail -1 | awk -F ':' '{print $4}') #number of column
+#echo $4
+if [[ $pk_exist = PK ]]; then
+row_number=$(awk -F  ':' -v aw_where_col_num="$where_col_exist" -v val="$value" -v aw_new_value="$new_value" -v aw_col_exist="$col_exist" -v aw_no_row_affect=$no_row_affect '{ if ($aw_where_col_num == val && NR != 1) {print NR}} ' ./"$1"/"$tbname")
+unique_val=0
+check_uniquenessForUpdate $1 $tbname $new_value $col_exist $row_number
+unique_val=$?
+if [[ $no_row_affect > 1 ]]; then
+echo "Your condition affect more than one row and you upadte pk so update must be unique"
+var1=1
+continue
+elif [[ $unique_val = 1 && $no_row_affect == 1 ]]; then
+echo "You must enter unique value"
+var1=1
+continue
+else
+var1=0ss
+echo "Okay about unique"
+fi
+else
+var1=0
+fi
+done
+#-------------------------------------------------------------substitute-----------------------------------------------------------------------------------------------------
+if [[ $var = where_applied ]]; then
+awk -F  ':' -v aw_where_col_num="$where_col_exist" -v val="$value" -v aw_new_value="$new_value" -v aw_col_exist="$col_exist" -v aw_no_row_affect=$no_row_affect '{ if ($aw_where_col_num == val && NR != 1) {OFS = FS; $aw_col_exist = aw_new_value;}} 1' ./"$1"/"$tbname" > ./"$1"/temp
+mv ./"$1"/temp ./"$1"/"$tbname"
+echo "$no_row_affect row(s) affected"
+elif [[ $var = no_where_applied ]]; then
+awk -F  ':' -v aw_where_col_num="$where_col_exist" -v aw_new_value="$new_value" -v aw_col_exist="$col_exist" -v aw_no_row_affect=$no_row_affect '{  if (NR != 1){ OFS = FS; $aw_col_exist = aw_new_value;}} 1' ./"$1"/"$tbname" > ./"$1"/temp
+mv ./"$1"/temp ./"$1"/"$tbname"
+#no_row_affect=$(awk '{ END {print NR} } ' ./"$1"/"$tbname")
+no_row_affect=$(wc -l < ./"$1"/"$tbname")
+((no_row_affect=$no_row_affect-1))
+echo "$no_row_affect row(s) affected"
+fi
+orderRowsByPK "$1" "$tbname"  
+}
+
+
+
+
+

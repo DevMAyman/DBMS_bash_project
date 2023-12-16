@@ -1,0 +1,22 @@
+#!/usr/bin/bash
+
+#-------------------------------------------------------------------------------------------------List table function-----------------------------------
+function list_table(){
+#-p  add / to directory , -E for extended regix
+ls -p ./"$1" | grep -vE '.metadata$|/' 
+}
+#-------------------------------------------------------------------------------------------------Drop table function---------------------------------
+function drop_table (){
+cd ./$1
+read -p "Enter the table name to delete : " tbname
+if [[ -f "$tbname" ]]; then
+rm "$tbname" ".$tbname.metadata"
+echo "Table deleted successfully"
+cd ../
+else
+echo "There is no table with this name"
+echo "Your tables at ${1} databse are :" 
+ls -p  | grep -vE '.metadata$|/' 
+cd ../
+fi
+}

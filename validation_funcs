@@ -1,0 +1,89 @@
+#!/usr/bin/bash
+
+function ValidateNumirecInput (){
+if [[ $1 = +([0-9]) ]];then
+return 0
+else
+echo "Please Enter numbers only"
+return 1
+fi
+}
+function ValidateDTNumirecInput (){
+if [[ $1 = *([0-9]) || $1 == "null"  ]]
+then
+echo "Data type validate successfully"
+return 0
+else
+echo "Please Enter numbers only"
+return 1
+fi
+}
+function orderRowsByPK (){
+PK_fields=0
+PK_fields=$(awk  -F ':' '{ for (i = 1; i <= NF; i++) {if( $i == "PK" ){ print NR; exit;}}}' ./"$1"/."$2.metadata") 
+PK_type=$(awk  -F ':' '{ for (i = 1; i <= NF; i++) {if( $i == "PK" ){ print $2; exit;}}}' ./"$1"/."$2.metadata") 
+all_rows=$(wc -l < ./"$1"/"$2")
+if [[ $PK_fields != "" ]]; then
+((all_rows=${all_rows}-1))
+head -1 ./"$1"/"$2" >> ./temp
+if [[ $PK_type == "int" ]]; then
+tail -"$all_rows" ./"$1"/"$2" | sort -t':' -k"$PK_fields","$PK_fields"n  >> ./temp
+else
+tail -"$all_rows" ./"$1"/"$2" | sort -t':' -k"$PK_fields","$PK_fields"  >> ./temp
+fi
+mv ./temp ./"$1"/"$2"
+fi
+
+}
+#-------------------------------------------------------------------------------------------------------check uniqness(insert)---------------------------------------------------------------------------------
+##check_uniqueness $1 $tab_name $col_value $var $4
+function check_uniqueness (){
+PK_fields=$(awk  -F ':' -v col_num=$4 -v col_val=$3 '{if (col_val == $col_num) {print 1;exit;}}' ./"$1"/"$2") 
+return $PK_fields
+}
+##check_uniqueness $1 $tab_name $col_value $var $4 $NR
+## اذا كان هناك تعديل ابديت لقيمة ال pk هناك ثلاث احتمالات ... لو انا باثر فى اكثر من سطر اكيد مسنفعش و لوانا باثر فى سطر واحد لازم تروح تتاكد من عدم وجود قيمة التغيير فى اي صف ما عدا الصف اللى يحصل عليه تعديل
+function check_uniquenessForUpdate (){
+PK_fields=$(awk  -F ':' -v col_num=$4 -v col_val=$3 -v row_num=$5 '{if (col_val == $col_num && NR != row_num) {print 1;exit;}}' ./"$1"/"$2") 
+return $PK_fields
+}
+#-------------------------------------------------------------------------------------------------------NULL or Not NULL-----------------------------------------------------------------------------------------
+# parameters : $1 $tab_name $c $col_value
+function chechNull (){
+((line_number_in_metadatafile=$3+1))
+is_null=$(head -$line_number_in_metadatafile ./"$1"/."$2.metadata" | tail -1 | awk -F ':' '{print $3}') #$3 is the third field (null,not_null)
+if [[ $is_null = not_null && ( -z "$4" || "$4" = null )   ]]; then
+echo "Not ok, your column is not_null and you insert no thing"
+return 1
+elif [[ $is_null = null && -z "$4"  ]]; then
+echo "ok, your column is null and you insert no thing"
+return 2
+else
+echo "okay about null check"
+return 0
+fi
+}
+#--------------------------------------------------------------------------------------------------Int or String--------------------------------------------------------------
+# parameters : $1 $tab_name $c $col_value
+function VlidateDatatype (){
+
+((line_num=$3+1))
+dataType=$(head -$line_num ./"$1"/".$2.metadata" | tail -1 | awk -F ':' '{print $2}') #$2 is the second field (int,string)
+ 
+if [[ $dataType = int   ]]; then 
+ValidateDTNumirecInput $4  #Must be modified ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+var=$?
+return $var
+else
+echo "Data type checked successfully"
+fi
+}
+#------------------------------------------------------------------------------------------------------Validate first char in name-----------------------------------------------------------------------------------------
+function validateDBobjectName (){
+if [[ $1 =~ ^[A-Za-z]+ ]]; then
+return 0
+else
+echo not valid name, do not start with number or special charachter.
+return 1 
+fi
+}

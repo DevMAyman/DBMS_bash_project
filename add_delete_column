@@ -1,0 +1,114 @@
+#!/usr/bin/bash
+
+function addcolumn(){
+
+#------------------check table exist-------------
+var=1
+while [[ $var = 1 ]]
+do
+read -p "Enter table name to Add Column in it : " tbname
+if [[ -f "./"$1"/"$tbname"" ]]; then
+var=0
+else
+echo "This name does not exist"
+continue
+fi
+done
+#-----------------check column exist--------------
+var=1
+while [[ $var = 1 ]]
+do 
+read -p "Enter column name you want to add in table : " col_name
+validateDBobjectName "$col_name"
+var=$?
+if [[ $var = 1 ]]; then
+continue
+fi
+
+col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_name '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
+if [[ $col_exist != "" ]]; then 
+echo "Column name already exist"
+var=1
+continue
+else
+var=0
+fi
+done
+ #--------------------------------------------------DataType--------------------------------------------------------------------------------------------------------------------------------------------------------------
+echo "what is your data type"
+select choice in "string" "int" 
+  do
+  case $REPLY in
+  1) 
+  col_type=string
+  break
+  ;;
+  2)
+  col_type=int
+  break
+  ;;
+  *)
+  echo "Enter valid choice 1 or 2"
+  ;;
+  esac
+  done
+#------------------------Null or not Null------------------------------------------------------------------------------------------------------------------------
+echo "Your Column will allow NULL by default"
+col_null=null
+#-------------------------Append new column to File----------------------------------------------------------------------------------------------------------------
+
+ echo "${col_name}:${col_type}:${col_null}" >> ../database/"$1"/".${tbname}.metadata"
+ awk   -v name="$col_name" '{if(NR==1) { print $0=$0":"name } else { print $0=$0":null" } }' ./"$1"/"$tbname" >> ./test 
+ mv ./test ./"$1"/"$tbname"                                             
+ #awk   -v name="$col_name" '{ $0 }' ./"$1"/"$tbname" >> ./test                                               
+}
+
+function deletecolumn(){
+
+#------------------check table exist-------------
+var=1
+while [[ $var = 1 ]]
+do
+read -p "Enter table name to Delete Column from it : " tbname
+if [[ -f "./"$1"/"$tbname"" ]]; then
+var=0
+else
+echo "This name does not exist"
+continue
+fi
+done
+#-----------------check column exist--------------
+var=1
+while [[ $var = 1 ]]
+do 
+read -p "Enter column name you want to delete from table : " col_name
+
+col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_name '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
+
+if [[ $col_exist == "" ]]; then 
+echo "Column name doesn't exist"
+var=1
+continue
+else
+var=0
+fi
+done
+#--------------------Delete data-----------------
+
+no_col=$(awk -F ':' '{ print NF; exit;}' ./"$1"/"$tbname") 
+my_array=()
+
+for ((i=1; i<=$no_col; i++)); do
+if [[ $i != $col_exist ]]; then
+my_array+=("$i")
+fi
+done
+
+array_string=$(IFS=,; echo "${my_array[*]}")
+#echo "${my_array[@]}"
+awk -F ':' '{ print $0 }' ./"$1"/"$tbname" | cut -d':' -f "$array_string" >> ./temp 
+mv ./temp ./"$1"/"$tbname"   
+awk -v col_num=$col_exist '{if( NR != col_num ) { print $0 }}' ./"$1"/".${tbname}.metadata" >> ./temp
+mv ./temp ./"$1"/".${tbname}.metadata"
+
+}

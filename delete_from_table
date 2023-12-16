@@ -1,0 +1,70 @@
+#!/usr/bin/bash
+
+
+function deleteFromTable (){
+#----------------------------------------------------------------------------------------------------check table exist--------------------
+var=1
+while [[ $var = 1 ]]
+do
+read -p "Enter table name to select : " tbname
+if [[ -f "./"$1"/"$tbname"" ]]; then
+var=0
+else
+echo "This name does not exist"
+continue
+fi
+done
+#-------------------------------------------------------------------------------------------------where condition will start--------------------------------
+var=1
+while [[ $var = 1 ]]
+do
+echo "Do you want where condition?"
+echo "1) Yes" 
+echo "2) No"
+#echo "enter 1 or 2"
+read is_condition
+if [[ $is_condition == 1 ]]; then
+var=where_applied
+elif [[ $is_condition == 2 ]]; then
+var=no_where_applied
+else
+var=1
+continue
+fi
+done
+
+#----------------------------------------------------------------------------------------------------------if there is where condition--------------------------------
+#--------------------------------------------------------------------------------------------------------take column and value condition-------------------------------------
+while [[ $var = where_applied ]]
+do
+read -p "Enter column that holds your condtion : " col_condtion
+where_col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_condtion '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
+if [[ $where_col_exist == "" ]]; then
+echo "Col does not exist!" 
+var=where_applied
+continue
+else
+echo "Col exists!"
+read -p "Enter your value" value
+break
+fi
+done
+#------------------------------------------------------------------------------------------------------------------if where applied select will start------------------
+no_row=0
+all_rows=$(wc -l < ./"$1"/"$tbname")
+if [[ $var = where_applied ]]; then
+awk -F ':' -v aw_where_col_num="$where_col_exist" -v val="$value"  '{if ($aw_where_col_num != val || NR==1) {print $0;}}' ./"$1"/"$tbname" >> ./temp
+no_row=$(awk -F ':' -v aw_where_col_num="$where_col_exist" -v val="$value" 'BEGIN { aw_no_row=0 } {if ($aw_where_col_num != val || NR == 1) { aw_no_row++ } } END { print aw_no_row }' ./"$1"/"$tbname")
+#------------------------------------------------------------------------------------------------------------------if no where applied select will start------------------------------------------------------------------------------
+elif [[ $var = no_where_applied ]]; then
+awk -v no_row=$no_row '{if(NR == 1){print $0;}' ./"$1"/"$tbname" >> ./temp
+no_row=$(awk  'BEGIN{no_row=0}{if(NR == 1) {no_row++} END {print no_row}' ./"$1"/"$tbname")
+fi
+mv ./temp ./"$1"/"$tbname"
+affected_rows=$((${all_rows} - ${no_row}))
+echo s"$affected_rows row(s) affected"
+}
+
+
+
+

@@ -1,0 +1,142 @@
+#!/usr/bin/bash
+
+function selectFromTable(){
+#----------------------------------------------------------------------------------------------------check table exist---------------------------------------------
+var=1
+while [[ $var = 1 ]]
+do
+read -p "Enter table name to select : " tbname
+if [[ -f "./"$1"/"$tbname"" ]]; then
+var=0
+else
+echo "This name does not exist"
+continue
+fi
+done
+#----------------------------------------------------------------------Enter columns want be select----------------------------
+select_var=1
+while [[ $select_var = 1 ]]
+do
+echo "Do you want to select all (*) or specific columns ?"
+echo "1) select all (*)"
+echo "2) specific columns"
+read select_state
+if [[ $select_state != 1 && $select_state != 2 ]]; then
+echo "Please Enter 1 or 2"
+continue
+else
+select_var=0
+fi
+done
+#---------------------------------------------------------------------------------select * all ------------------------------------------------------
+col_my_array=()
+if [[ $select_state == 1 ]]; then
+#awk '{print $0}' ./"$1"/"$tbname"
+output_awk=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_name '{ for (i = 1; i <= NF; i++) { print i;  } }')
+mapfile -t col_my_array <<< "$output_awk"
+#echo "${col_my_array[1]}"
+fi
+
+#---------------------------------------------------------------------------------select specific cols ---------------------------------------------------------
+if [[ $select_state == 2 ]]; then
+my_array=()
+col_my_array=()
+i_want_continue=yes
+while [[ $i_want_continue = yes ]]
+do 
+read -p "Enter column you want to select from : " col_name
+length=${#my_array[@]}
+col_exist_before=0
+for ((i=0; i<length; i++)); do
+    if [[ ${my_array[i]} == $col_name ]]; then
+        col_exist_before=1
+    break
+    fi
+done
+if [[ $col_exist_before == 1 ]]; then
+echo "You enter this before"
+continue
+fi
+col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_name '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
+if [[ $col_exist == "" ]]; then 
+echo "Column name dosen't exist"
+continue
+fi
+my_array+=("$col_name")
+col_my_array+=("$col_exist")  # number of columns 
+#-------------------------------------------------------------------------------------want add another column----------------------------------------------------------------
+var_invalid=no
+((my_length=$length+1))
+no_col=$(head -1 ./"$1"/"$tbname" | awk -F ':' '{print NF}')
+if [[ $my_length == $no_col ]]; then #### اخرج لو اليوزر دخل الحد الاقصي من ال ؤخمعةىس
+i_want_continue=No
+break
+fi
+while [[ $var_invalid = no ]]
+do
+echo "Do you want select from another column?"
+echo "1) Yes"
+echo "2)No"
+read  var
+if [[ $velar = Yes || (($var = 1)) ]]; then
+i_want_continue=yes
+var_invalid=yes
+elif [[ $var = No || (($var = 2)) ]]; then
+i_want_continue=No
+var_invalid=yes
+else
+echo "Enter valid input"
+var_invalid=no
+fi
+done
+done
+
+#echo "${col_my_array[1]}"
+fi
+#-------------------------------------------------------------------------------------------------where condition will start------------------------------
+var=1
+while [[ $var = 1 ]]
+do
+echo "Do you want where condition?"
+echo "1) Yes" 
+echo "2) No"
+#echo "enter 1 or 2"
+read is_condition
+if [[ $is_condition == 1 ]]; then
+var=where_applied
+elif [[ $is_condition == 2 ]]; then
+var=no_where_applied
+else
+var=1
+continue
+fi
+done
+
+#----------------------------------------------------------------------------------------------------------if there is where condition----------------------
+#--------------------------------------------------------------------------------------------------------take column and value condition---------------------
+while [[ $var = where_applied ]]
+do
+read -p "Enter column that holds your condtion : " col_condtion
+where_col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_condtion '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
+if [[ $where_col_exist == "" ]]; then
+echo "Col does not exist!" 
+var=where_applied
+continue
+else
+echo "Col exists!"
+read -p "Enter your value" value
+break
+fi
+done
+#------------------------------------------------------------------------------------------------------------------if where applied select will start------------------
+no_row_affect=0
+array_string=$(IFS=,; echo "${col_my_array[*]}")
+if [[ $var = where_applied ]]; then
+awk -F ':' -v aw_where_col_num="$where_col_exist" -v val="$value" '{if ($aw_where_col_num == val || NR==1) {print $0}}' ./"$1"/"$tbname" | cut -d':' -f "$array_string" | column -t -s ":"
+#------------------------------------------------------------------------------------------------------------------if no where applied select will start------------------------------------------------------------------------------
+elif [[ $var = no_where_applied ]]; then
+awk '{print $0}' ./"$1"/"$tbname" | cut -d':' -f "$array_string" | column -t -s ":"
+fi
+}
+
+

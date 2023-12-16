@@ -1,0 +1,143 @@
+#!/usr/bin/bash
+
+function createTable (){
+tablecreated=false
+# will create table here 
+var=1
+while [[ $var = 1 ]]
+do
+read -p "Enter table name :" tbname
+validateDBobjectName $tbname
+var=$?
+if [[ $var = 1 ]]; then
+continue
+fi 
+########
+if [[ -f "./"$1"/"$tbname"" ]]
+then
+echo "Table already exist"
+var=1
+continue	
+else
+#######
+touch ./"$1"/"$tbname"
+touch ./"$1"/."$tbname.metadata"	
+echo "Table created successfully"
+tablecreated=true
+var=0
+
+fi
+done
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+if [[ $tablecreated = true ]]; then
+var=1
+while [[ $var = 1 ]]
+do 
+read -p "Enter number of columns :" col_num
+ValidateNumirecInput $col_num
+var=$?
+if [[ $col_num == 0 && $var == 0 ]]; then
+var=1
+echo "Number of columns can't be 0"
+continue
+fi
+if [[ $var = 1 ]]; then
+continue
+fi
+done
+#------------------------------------------------if number of columns =1 do not ask him about number of pk column number and set it to 1 -----------------------------------------------------------------
+if [[ $col_num = 1 ]]; then
+echo $col_num
+PK_col_num=1
+fi
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+var=1
+while (( $var == 1 && $col_num != 1 ))
+do
+read -p "Enter number of PK col :" PK_col_num
+ValidateNumirecInput $PK_col_num
+var=$?
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+if [[ $PK_col_num > $col_num ]]; then
+var=1
+echo "Please Enter number between or equal to 1 and ${col_num}"
+continue
+fi
+if [[ $var = 1 ]]; then
+continue
+fi
+done
+ #--------------------------------------take data from user will start know-------------------------------------------------------------------------------------------------------------------------------
+for (( i=0; i< $col_num ; i++ ))
+do
+  #--------------------------------------------------column name-------------------------------------------------------------------------------------------------------------------------------------------
+  read -p "Enter the name of column $(($i+1)) :" col_name
+  validateDBobjectName "$col_name"
+  var=$?
+  if [[ $var = 1 ]]; then
+  ((i--))
+  continue
+  fi
+  #--------------------------------------------------DataType----------------------------------------------------------------------------------------------------------------------------------------------
+  echo "what is your data type"
+  select choice in "string" "int" 
+  do
+  case $REPLY in
+  1) 
+  col_type=string
+  break
+  ;;
+  2)
+  col_type=int
+  break
+  ;;
+  *)
+  echo "Enter valid choice 1 or 2"
+  ;;
+  esac
+  done
+#-----------------------------------------------------------------------------------------------------------------null or not null------------------------------------------------------------------------
+    is_primary_key=no
+  if (( (($i+1)) != $PK_col_num )); then
+  echo "Do your column allow null"
+  select choice in "null" "not null"
+  do
+  case $REPLY in
+  1) 
+  col_null=null
+  break
+  ;;
+  2)
+  col_null=not_null
+  break
+  ;;
+  *)
+  echo "Enter valid choice 1 or 2"
+  ;;
+  esac
+  done
+  elif (( (($i+1)) == $PK_col_num )); then
+  echo "This is a primary key column so it will be not null by default"
+  col_null=not_null
+  is_primary_key=yes
+  fi
+#---------------------------------------------------push my variable into table and metadata-------------------------------------------------
+    #echo $PWD
+    if [[ $is_primary_key = no ]]; then
+    echo "${col_name}:${col_type}:${col_null}" >> ../database/"$1"/".${tbname}.metadata"
+    elif [[ $is_primary_key = yes ]]; then
+    echo "${col_name}:${col_type}:${col_null}:"PK"" >> ../database/"$1"/".${tbname}.metadata"
+    fi
+    if (( $i == (($col_num-1)) )); then
+    echo  "${col_name}" >> ../database/"$1"/"$tbname"
+    else
+    echo -n "${col_name}:" >> ../database/"$1"/"$tbname"
+    fi
+done
+fi
+}
+
+
+
+
+
