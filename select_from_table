@@ -9,7 +9,7 @@ read -p "Enter table name to select : " tbname
 if [[ -f "./"$1"/"$tbname"" ]]; then
 var=0
 else
-echo "This name does not exist"
+echo "❌This name does not exist❌"
 continue
 fi
 done
@@ -22,7 +22,7 @@ echo "1) select all (*)"
 echo "2) specific columns"
 read select_state
 if [[ $select_state != 1 && $select_state != 2 ]]; then
-echo "Please Enter 1 or 2"
+echo "❌Please Enter 1 or 2❌"
 continue
 else
 select_var=0
@@ -54,12 +54,12 @@ for ((i=0; i<length; i++)); do
     fi
 done
 if [[ $col_exist_before == 1 ]]; then
-echo "You enter this before"
+echo "❌You enter this before❌"
 continue
 fi
 col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_name '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
 if [[ $col_exist == "" ]]; then 
-echo "Column name dosen't exist"
+echo "❌Column name dosen't exist❌"
 continue
 fi
 my_array+=("$col_name")
@@ -85,7 +85,7 @@ elif [[ $var = No || (($var = 2)) ]]; then
 i_want_continue=No
 var_invalid=yes
 else
-echo "Enter valid input"
+echo "❌Enter valid input❌"
 var_invalid=no
 fi
 done
@@ -119,12 +119,12 @@ do
 read -p "Enter column that holds your condtion : " col_condtion
 where_col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_condtion '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
 if [[ $where_col_exist == "" ]]; then
-echo "Col does not exist!" 
+echo "❌Column name does not exist! ❌" 
 var=where_applied
 continue
 else
-echo "Col exists!"
-read -p "Enter your value" value
+echo "✅Col exists! ✅"
+read -p "Enter your value : " value
 break
 fi
 done

@@ -10,7 +10,7 @@ read -p "Enter table name to select : " tbname
 if [[ -f "./"$1"/"$tbname"" ]]; then
 var=0
 else
-echo "This name does not exist"
+echo "❌This name does not exist❌"
 continue
 fi
 done
@@ -40,12 +40,12 @@ do
 read -p "Enter column that holds your condtion : " col_condtion
 where_col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_condtion '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
 if [[ $where_col_exist == "" ]]; then
-echo "Col does not exist!" 
+echo "❌Column name does not exist! ❌" 
 var=where_applied
 continue
 else
-echo "Col exists!"
-read -p "Enter your value" value
+echo "✅Col exists! ✅"
+read -p "Enter your value : " value
 break
 fi
 done
@@ -62,7 +62,7 @@ no_row=$(awk  'BEGIN{no_row=0}{if(NR == 1) {no_row++} END {print no_row}' ./"$1"
 fi
 mv ./temp ./"$1"/"$tbname"
 affected_rows=$((${all_rows} - ${no_row}))
-echo s"$affected_rows row(s) affected"
+echo "$affected_rows row(s) affected"
 }
 
 

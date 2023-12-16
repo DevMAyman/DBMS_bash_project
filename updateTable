@@ -9,7 +9,7 @@ read -p "Enter table name to update : " tbname
 if [[ -f "./"$1"/"$tbname"" ]]; then
 var=0
 else
-echo "This name does not exist"
+echo "❌This name does not exist❌"
 continue
 fi
 done
@@ -20,7 +20,7 @@ do
 read -p "Enter column you want to update in : " col_name
 col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_name '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found ### col_exist is the column number i want to update
 if [[ $col_exist == "" ]]; then 
-echo "Column name dosen't exist"
+echo "❌Column name dosen't exist❌"
 continue
 else
 var=0
@@ -81,11 +81,11 @@ do
 read -p "Enter column that holds your condtion : " col_condtion
 where_col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_condtion '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
 if [[ $where_col_exist == "" ]]; then
-echo "Col does not exist!" 
+echo "❌Column name does not exist! ❌" 
 var=where_applied
 continue
 else
-echo "Col exists!"
+echo "✅Col exists!✅"
 break
 fi
 done
@@ -94,7 +94,7 @@ done
 var1=1
 while [[ $var = where_applied && $var1 = 1 ]]
 do
-read -p "Enter your value" value
+read -p "Enter your value : " value
 if [[ $value = "" ]]; then   #add null if user enter nothing and your column allow null
 value=null
 fi
@@ -110,16 +110,16 @@ unique_val=0
 check_uniquenessForUpdate $1 $tbname $new_value $col_exist $row_number
 unique_val=$?
 if [[ $no_row_affect > 1 ]]; then
-echo "Your condition affect more than one row and you upadte pk so update must be unique"
+echo "⚠️ Your condition affect more than one row and you upadte pk so update must be unique ⚠️"
 var1=1
 continue
 elif [[ $unique_val = 1 && $no_row_affect == 1 ]]; then
-echo "You must enter unique value"
+echo "❌You must enter unique value❌"
 var1=1
 continue
 else
-var1=0ss
-echo "Okay about unique"
+var1=0
+echo "✅Okay about unique✅"
 fi
 else
 var1=0

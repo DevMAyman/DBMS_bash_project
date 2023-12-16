@@ -4,17 +4,17 @@ function ValidateNumirecInput (){
 if [[ $1 = +([0-9]) ]];then
 return 0
 else
-echo "Please Enter numbers only"
+echo "❌Please Enter numbers only❌"
 return 1
 fi
 }
 function ValidateDTNumirecInput (){
 if [[ $1 = *([0-9]) || $1 == "null"  ]]
 then
-echo "Data type validate successfully"
+echo "✅Data type validate successfully✅"
 return 0
 else
-echo "Please Enter numbers only"
+echo "❌Please Enter numbers only❌"
 return 1
 fi
 }
@@ -53,13 +53,13 @@ function chechNull (){
 ((line_number_in_metadatafile=$3+1))
 is_null=$(head -$line_number_in_metadatafile ./"$1"/."$2.metadata" | tail -1 | awk -F ':' '{print $3}') #$3 is the third field (null,not_null)
 if [[ $is_null = not_null && ( -z "$4" || "$4" = null )   ]]; then
-echo "Not ok, your column is not_null and you insert no thing"
+echo "❌Not ok, your column is not_null and you insert no thing❌"
 return 1
 elif [[ $is_null = null && -z "$4"  ]]; then
-echo "ok, your column is null and you insert no thing"
+echo "✅ok, your column is null and you insert no thing✅"
 return 2
 else
-echo "okay about null check"
+echo "✅okay about null check✅"
 return 0
 fi
 }
@@ -75,7 +75,7 @@ ValidateDTNumirecInput $4  #Must be modified +++++++++++++++++++++++++++++++++++
 var=$?
 return $var
 else
-echo "Data type checked successfully"
+echo "✅Data type checked successfully✅"
 fi
 }
 #------------------------------------------------------------------------------------------------------Validate first char in name-----------------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ function validateDBobjectName (){
 if [[ $1 =~ ^[A-Za-z]+ ]]; then
 return 0
 else
-echo not valid name, do not start with number or special charachter.
+echo "❌not valid name, do not start with number or special charachter.❌"
 return 1 
 fi
 }

@@ -9,7 +9,7 @@
 . add_delete_column
 
 #-----------------------------------------------------------------------------------------Main Start The program-------------------------------------------------------------
-if [  -e "./.logs" ]; then
+if [  ! -e "./.logs" ]; then
 touch ./.logs
 fi
 last_field_value=1
@@ -22,7 +22,7 @@ fi
 if [[ $last_field_value == "" ]]; then
 sed -i '$d' ./database/"$db_name"/"$db_tab_name" 
 fi
-echo "Welcome! Your beautiful program has been started!, $USER"
+echo "Welcome! Your beautiful DBMS has been started!, $USER ❤️"
 #المشكلة اني عايز اعمل انشاء للفولدر اللى هيحتوي كل الداتا بيز بعد كده وخايف يكون هو عامل فولدر بنفس الاسم او انا بالفعل عملتله الفولدر ده وراح حرك #الفولدر من مكانه بتاع الداتا بيز فجيه يفتح #البرنامج تاني فالبرنامج بيتاكد ان ده مش اول مره يرن على الماشين ديه ويدور على فولدر الداتا بيز يةقم ميلقهوش #فبرنامجي يفهم ان كده هو اول مره يشتغل رغم انه اشتغل قبل كده بس المستخدم #حرك الفولدر من مكانه 
 finger_print_exist_1=false
 for i in `ls -a`
@@ -94,7 +94,7 @@ done
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 elif [[ $finger_print_exist_1 = true && $database_dir_found = true && $finger_print_exist_2 = true ]]; then
-echo "Welcom again $USER !"
+echo "Welcom again $USER 😉!"
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 elif [[ $finger_print_exist_1 = false && $database_dir_found = true && $finger_print_exist_2 = false ]]; then
@@ -157,6 +157,18 @@ done
 fi 
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function display_menu(){
+echo ""
+echo ""
+echo "------------------------------Main Menu------------------------------"
+echo -e "1-Create Database\n2-List Databases\n3-Delete Database\n4-Connect to Database\n5-Exit"
+}
+function connection_menu(){
+echo ""
+echo "----------------------Connected to $1 Database----------------------"
+echo -e "1-Create Table\n2-List Tables\n3-Drop Table\n4-Insert Table\n5-Select from Table\n6-Delete from Table\n7-Update Table\n8-Add Column to Table\n9-Delete Column from Table\n10-Back"
+}
+
 if [[ $finger_print_exist_1 = true &&  $database_dir_found = true  && $finger_print_exist_2 = true  ]]; then
 echo "Please Enter the number of your choice"
 select choice in "Create Database" "list Databases" "Delete Database" "connect to database" "Exit" 
@@ -176,15 +188,16 @@ fi
 cd ./database	
 if [ -e "$dbname" ]
 then
- echo "Database already exist"
+ echo "❌Database already exist❌"
  #cd ../DBMS_bash_project
  cd ../	
+ display_menu
 else
 #cd ./database	
 mkdir "$dbname"
-echo "Database created successfully"
+echo "✅Database created successfully✅"
  cd ../	
-
+display_menu
 fi
 done 
 ;;
@@ -195,6 +208,7 @@ cd ./database
 # -p is to add / to directories to grep them
 ls -p | grep /
 cd ../
+display_menu
 ;;
 
 3)
@@ -206,12 +220,14 @@ if [ -e "$dbname" ]
 then
 #cd ../database
 rm -r "$dbname"
-echo "Database deleted successfully"
+echo "✅Database deleted successfully✅"
 cd ../
+display_menu
 else
-echo "There is no database with this name"
+echo "❌There is no database with this name, I think you mean one of these files❌"
 ls -F  | grep -i "/$" 
  cd ../	
+display_menu
 fi	
 ;;
 
@@ -221,7 +237,7 @@ cd ./database
 
 if [ -e "$dbname" ]
 then
- echo "Connection to ${dbname} Succeded"
+ echo "✅Connection to ${dbname} Succeded✅"
  echo "Enter the number of your operation"
  select action in "Create table" "List tables" "Drop table" "Insert table" "Select from table" "Delete from table" "Update table" "Add Column to table" "Delete column from table" "Back"
  do 
@@ -229,61 +245,66 @@ case $REPLY in
 1)
 #----------------------------------------------------------------------------------create table call--------------------------------------------------------- 
 createTable  "$dbname"
-echo "Choose another operation from the above Menu : "
+connection_menu "$dbname"
 ;;
 2)
 #----------------------------------------------------------------------------------List table call------------------------------------------------------------
 list_table "$dbname"
-echo "Choose another operation from the above Menu : "
+connection_menu "$dbname"
 ;;
 3)
 #-----------------------------------------------------------------------------------Drop table call-------------------------------------------------------------------
 drop_table "$dbname"
-echo "Choose another operation from the above Menu : "
+connection_menu "$dbname"
 ;;
 4)
 #----------------------------------------------------------------------------------insert table call-----------------------------------------------------------------
 insertInTable  "$dbname"
-echo "Choose another operation from the above Menu : "
+connection_menu "$dbname"
 ;;
 5)
 #----------------------------------------------------------------------------------select table call--------------------------------------------------------------
 selectFromTable  "$dbname"
-echo "Choose another operation from the above Menu : "
+connection_menu "$dbname"
 ;;
 6)
 #----------------------------------------------------------------------------------select table call-----------------------------------------------------------------
 deleteFromTable  "$dbname"
-echo "Choose another operation from the above Menu : "
+connection_menu  "$dbname"
 ;;
 7)
 updateTable "$dbname"
-echo "Choose another operation from the above Menu : "
+connection_menu "$dbname"
 ;;
 8)
 #----------------------------------------------------------------------------------Add Column ------------------------------------------------------------------------
 addcolumn "$dbname"
-echo "Choose another operation from the above Menu : "
+connection_menu "$dbname"
 ;;
 9)
 #----------------------------------------------------------------------------------Delete Column call-----------------------------------------------------------------
 deletecolumn "$dbname"
-echo "Choose another operation from the above Menu : "
+connection_menu "$dbname"
 ;;
 #--------------------------------------------------------------------------------------Back-----------------------------------------------------------------------
 10)
 cd ../
-echo "You are now in the Main Menu"
+display_menu
 break
+;;
+*)
+echo "❌Please Enter Valid Choice❌"
+connection_menu "$dbname"
 ;;
 esac
 done
 
 
 else
-echo "There is no database with this name, I think you mean one of these files"
+echo "❌There is no database with this name, I think you mean one of these files❌"
 ls -F  | grep -i "/$" 
 cd ../
+display_menu
 fi      
 ;;
 
@@ -291,8 +312,10 @@ fi
 break
 ;;
 
-*)
-echo "Please Enter Valid Choice"
+*) 
+display_menu
+echo "❌Please Enter Valid Choice❌"
+
 ;;
 esac
 done 

@@ -10,7 +10,7 @@ read -p "Enter table name to Add Column in it : " tbname
 if [[ -f "./"$1"/"$tbname"" ]]; then
 var=0
 else
-echo "This name does not exist"
+echo "❌This name does not exist❌"
 continue
 fi
 done
@@ -27,7 +27,7 @@ fi
 
 col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_name '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
 if [[ $col_exist != "" ]]; then 
-echo "Column name already exist"
+echo "❌Column name already exist❌"
 var=1
 continue
 else
@@ -48,12 +48,13 @@ select choice in "string" "int"
   break
   ;;
   *)
-  echo "Enter valid choice 1 or 2"
+  echo "❌Enter valid choice 1 or 2❌"
   ;;
   esac
   done
 #------------------------Null or not Null------------------------------------------------------------------------------------------------------------------------
-echo "Your Column will allow NULL by default"
+echo "⚠️ Your Column will allow NULL by default ⚠️"
+echo "✅Column Added Successfully✅"
 col_null=null
 #-------------------------Append new column to File----------------------------------------------------------------------------------------------------------------
 
@@ -73,7 +74,7 @@ read -p "Enter table name to Delete Column from it : " tbname
 if [[ -f "./"$1"/"$tbname"" ]]; then
 var=0
 else
-echo "This name does not exist"
+echo "❌This name does not exist❌"
 continue
 fi
 done
@@ -86,7 +87,7 @@ read -p "Enter column name you want to delete from table : " col_name
 col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_name '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
 
 if [[ $col_exist == "" ]]; then 
-echo "Column name doesn't exist"
+echo "❌Column name doesn't exist❌"
 var=1
 continue
 else
@@ -94,7 +95,7 @@ var=0
 fi
 done
 #--------------------Delete data-----------------
-
+echo "✅Column Deleted Successfully✅"
 no_col=$(awk -F ':' '{ print NF; exit;}' ./"$1"/"$tbname") 
 my_array=()
 

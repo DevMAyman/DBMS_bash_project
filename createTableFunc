@@ -15,14 +15,14 @@ fi
 ########
 if [[ -f "./"$1"/"$tbname"" ]]
 then
-echo "Table already exist"
+echo "❌Table already exist❌"
 var=1
 continue	
 else
 #######
 touch ./"$1"/"$tbname"
 touch ./"$1"/."$tbname.metadata"	
-echo "Table created successfully"
+echo "✅Table created successfully✅"
 tablecreated=true
 var=0
 
@@ -38,7 +38,7 @@ ValidateNumirecInput $col_num
 var=$?
 if [[ $col_num == 0 && $var == 0 ]]; then
 var=1
-echo "Number of columns can't be 0"
+echo "❌Number of columns can't be 0❌"
 continue
 fi
 if [[ $var = 1 ]]; then
@@ -58,9 +58,9 @@ read -p "Enter number of PK col :" PK_col_num
 ValidateNumirecInput $PK_col_num
 var=$?
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-if [[ $PK_col_num > $col_num ]]; then
+if [[ $PK_col_num > $col_num || $PK_col_num == 0 ]]; then
 var=1
-echo "Please Enter number between or equal to 1 and ${col_num}"
+echo "❌Please Enter number between or equal to 1 and ${col_num}❌"
 continue
 fi
 if [[ $var = 1 ]]; then
@@ -78,6 +78,13 @@ do
   ((i--))
   continue
   fi
+  #-------------------------------check if the column name was repeated-----------------------
+  col_exist=$(head -1 ./"$1"/"$tbname" | awk -F ':' -v name=$col_name '{ for (i = 1; i <= NF; i++) { if ($i==name) { print i;exit; } } }') # the awk check in the first line in table data and return 0 if column found
+if [[ $col_exist != "" ]]; then 
+echo "❌Column name already exist❌"
+((i--))
+continue
+fi
   #--------------------------------------------------DataType----------------------------------------------------------------------------------------------------------------------------------------------
   echo "what is your data type"
   select choice in "string" "int" 
@@ -92,7 +99,7 @@ do
   break
   ;;
   *)
-  echo "Enter valid choice 1 or 2"
+  echo "❌Enter valid choice 1 or 2❌"
   ;;
   esac
   done
@@ -112,12 +119,12 @@ do
   break
   ;;
   *)
-  echo "Enter valid choice 1 or 2"
+  echo "❌Enter valid choice 1 or 2❌"
   ;;
   esac
   done
   elif (( (($i+1)) == $PK_col_num )); then
-  echo "This is a primary key column so it will be not null by default"
+  echo "⚠️ This is a primary key column so it will be not null by default ⚠️"
   col_null=not_null
   is_primary_key=yes
   fi

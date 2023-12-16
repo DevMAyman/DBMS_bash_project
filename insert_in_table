@@ -4,11 +4,11 @@ function insertInTable (){
 in_var=1
 while [[ $in_var = 1 ]]
 do
-read -p "enter table name : " tab_name
+read -p "Enter table name : " tab_name
 if [[ -f "./"$1"/"$tab_name"" ]]; then
 in_var=0
 else
-echo "This name does not exist"
+echo "❌This name does not exist❌"
 continue
 fi
 done
@@ -50,7 +50,7 @@ if [[ $pk_exist = PK ]]; then
 check_uniqueness $1 $tab_name $col_value $var
 unique_val=$?
 if [[ $unique_val = 1 ]]; then
-echo "You must enter unique value"
+echo "❌You must enter unique value❌"
 ((c=$c-1))
 continue
 fi
@@ -86,7 +86,7 @@ i_want_continue=No
 var_invalid=no
 break
 else
-echo "Enter valid input"
+echo "❌Enter valid input❌"
 var_invalid=yes
 fi
 done
