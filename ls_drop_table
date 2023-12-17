@@ -9,6 +9,7 @@ ls -p ./"$1" | grep -vE '.metadata$|/'
 function drop_table (){
 cd ./$1
 read -p "Enter the table name to delete : " tbname
+tbname=$(echo "$tbname" | sed 's/ /_/g')
 if [[ -f "$tbname" ]]; then
 rm "$tbname" ".$tbname.metadata"
 echo "✅Table deleted successfully✅"

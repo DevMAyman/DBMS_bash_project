@@ -5,6 +5,7 @@ in_var=1
 while [[ $in_var = 1 ]]
 do
 read -p "Enter table name : " tab_name
+tab_name=$(echo "$tab_name" | sed 's/ /_/g')
 if [[ -f "./"$1"/"$tab_name"" ]]; then
 in_var=0
 else

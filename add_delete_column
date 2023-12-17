@@ -7,6 +7,7 @@ var=1
 while [[ $var = 1 ]]
 do
 read -p "Enter table name to Add Column in it : " tbname
+tbname=$(echo "$tbname" | sed 's/ /_/g')
 if [[ -f "./"$1"/"$tbname"" ]]; then
 var=0
 else
@@ -71,6 +72,7 @@ var=1
 while [[ $var = 1 ]]
 do
 read -p "Enter table name to Delete Column from it : " tbname
+tbname=$(echo "$tbname" | sed 's/ /_/g')
 if [[ -f "./"$1"/"$tbname"" ]]; then
 var=0
 else

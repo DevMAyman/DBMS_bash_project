@@ -179,6 +179,7 @@ var=1
 while [[ $var = 1 ]]
 do
 read -p "Enter the database name :" dbname
+dbname=$(echo "$dbname" | sed 's/ /_/g')
 # validate db name
 validateDBobjectName $dbname
 var=$?
@@ -213,7 +214,7 @@ display_menu
 
 3)
 read -p "Enter the database name :" dbname
-
+dbname=$(echo "$dbname" | sed 's/ /_/g')
 cd ./database
 if [ -e "$dbname" ]
  #cd ../DBMS_bash_project	
@@ -233,6 +234,7 @@ fi
 
 4)
 read -p "Enter the database name :" dbname
+dbname=$(echo "$dbname" | sed 's/ /_/g')
 cd ./database
 
 if [ -e "$dbname" ]

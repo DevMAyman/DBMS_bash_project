@@ -7,6 +7,7 @@ var=1
 while [[ $var = 1 ]]
 do
 read -p "Enter table name :" tbname
+tbname=$(echo "$tbname" | sed 's/ /_/g')
 validateDBobjectName $tbname
 var=$?
 if [[ $var = 1 ]]; then

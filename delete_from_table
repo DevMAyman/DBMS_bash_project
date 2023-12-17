@@ -7,9 +7,10 @@ var=1
 while [[ $var = 1 ]]
 do
 read -p "Enter table name to select : " tbname
+tbname=$(echo "$tbname" | sed 's/ /_/g')
 if [[ -f "./"$1"/"$tbname"" ]]; then
 var=0
-else
+else	
 echo "❌This name does not exist❌"
 continue
 fi
@@ -57,8 +58,8 @@ awk -F ':' -v aw_where_col_num="$where_col_exist" -v val="$value"  '{if ($aw_whe
 no_row=$(awk -F ':' -v aw_where_col_num="$where_col_exist" -v val="$value" 'BEGIN { aw_no_row=0 } {if ($aw_where_col_num != val || NR == 1) { aw_no_row++ } } END { print aw_no_row }' ./"$1"/"$tbname")
 #------------------------------------------------------------------------------------------------------------------if no where applied select will start------------------------------------------------------------------------------
 elif [[ $var = no_where_applied ]]; then
-awk -v no_row=$no_row '{if(NR == 1){print $0;}' ./"$1"/"$tbname" >> ./temp
-no_row=$(awk  'BEGIN{no_row=0}{if(NR == 1) {no_row++} END {print no_row}' ./"$1"/"$tbname")
+awk -v no_row=$no_row '{if(NR == 1){print $0;}}' ./"$1"/"$tbname" >> ./temp
+no_row=$(awk  'BEGIN{no_row=0}{if(NR == 1) {no_row++}} END {print no_row}' ./"$1"/"$tbname")
 fi
 mv ./temp ./"$1"/"$tbname"
 affected_rows=$((${all_rows} - ${no_row}))

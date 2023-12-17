@@ -6,6 +6,7 @@ var=1
 while [[ $var = 1 ]]
 do
 read -p "Enter table name to update : " tbname
+tbname=$(echo "$tbname" | sed 's/ /_/g')
 if [[ -f "./"$1"/"$tbname"" ]]; then
 var=0
 else
