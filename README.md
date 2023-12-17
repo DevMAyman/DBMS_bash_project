@@ -11,9 +11,10 @@
 ## Special Features
 1. **Rollback System:**
    - Maintains a detailed log file for user actions to facilitate data recovery in case of errors or unintended changes.
-2. **Sorting for Primary Key:**
+2. **Sorting data by Primary Key:**
    - Tables within the databases support sorting based on the primary key, enhancing data retrieval efficiency.
-
+2. **Make column allow null and not null:**
+   - Tables within the databases support constrian for allowing null and not null.
 ## Project Main Functions
 
 ### 1. Create Database
